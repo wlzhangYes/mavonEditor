@@ -408,25 +408,28 @@ export default {
             }
         },
         $paste($e) {
+            var $vm = this;
             var clipboardData = $e.clipboardData;
             if (clipboardData) {
-                var items = clipboardData.items;
-                if (!items) return;
-                var types = clipboardData.types || [];
-                var item = null;
-                for (var i = 0; i < types.length; i++) {
-                    if (types[i] === 'Files') {
-                        item = items[i];
-                        break;
-                    }
+              var items = clipboardData.items;
+              if (!items) return;
+              // var types = clipboardData.types || [];
+
+              var item = [];
+              for (var i = 0; i < items.length; i++) {
+                if (items[i] && items[i].kind === 'file') {
+                  item.push(items[i]);
+                  // prevent filename being pasted parallel along
+                  // with the image pasting process
+                  stopEvent($e)
+                  var oFile = items[i].getAsFile();
+                  if(items[i].type.indexOf('image') > -1){
+                    $vm.$emit('paste', oFile);
+                  }else{
+                    $vm.$refs.toolbar_left.$imgFilesAdd([oFile]);
+                  }
                 }
-                if (item && item.kind === 'file') {
-                    // prevent filename being pasted parallel along
-                    // with the image pasting process
-                    stopEvent($e)
-                    var oFile = item.getAsFile();
-                    this.$refs.toolbar_left.$imgFilesAdd([oFile]);
-                }
+              }
             }
         },
         $imgTouch(file) {
